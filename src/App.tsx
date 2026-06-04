@@ -1,10 +1,17 @@
-
+import { Routes, Route } from 'react-router-dom'
+import Login from './pages/Login'
+import Register from './pages/Register'
+import TripDetail from './pages/TripDetail'
+import Trips from './pages/Trips'
 
 function App() {
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-blue-500">TravelPlan</h1>
-    </div>
+    <Routes>
+      <Route path="/login" element={<Login />}/>
+      <Route path="Register" element={<Register />}/>
+      <Route path="TripDetail" element={<TripDetail />}/>
+      <Route path="Trips" element={<Trips />}/>
+    </Routes>
   )
 }
 
