@@ -3,6 +3,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import TripDetail from './pages/TripDetail'
 import Trips from './pages/Trips'
+import ProtectedRoute  from './components/ProtectedRoute'
 
 function App() {
   return (
@@ -10,7 +11,11 @@ function App() {
       <Route path="/login" element={<Login />}/>
       <Route path="Register" element={<Register />}/>
       <Route path="TripDetail" element={<TripDetail />}/>
-      <Route path="Trips" element={<Trips />}/>
+      <Route path="Trips" element={
+        <ProtectedRoute>
+          <Trips />
+        </ProtectedRoute>
+      }/>
     </Routes>
   )
 }
