@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { login } from '../api/auth'
+import mapIcon from '../assets/map.svg'
 
 function Login() {
     const [email, setEmail] = useState('')
@@ -17,7 +18,11 @@ function Login() {
     return (
         <div className='min-h-screen flex items-center justify-center bg-gray-100'>
             <div className='bg-white p-8 rounded-lg shadow-md w-96'>
-                <h1 className='text-2xl font-bold mb-6'>Logowanie</h1>
+                <div className='flex items-center justify-center mb-6'>
+                    <img src={mapIcon} alt="" className="w-15 h-15" />
+                    <h1 className='text-4xl font-bold text-gray-700'>TravelPlan</h1>
+                </div>
+                <h1 className='text-2xl font-bold mb-3 text-gray-600'>Zaloguj się</h1>
                     <form onSubmit={handleSubmit} className='w-full max-w-xs'>
                         <div className="mb-4">
                             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">

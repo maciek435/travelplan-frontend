@@ -9,13 +9,22 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />}/>
+      <Route path="/" element={<Login />}/>
       <Route path="Register" element={<Register />}/>
       <Route path="TripDetail" element={<TripDetail />}/>
-      <Route path="Trips" element={
+
+      <Route path="trips" element={
         <ProtectedRoute>
           <Trips />
         </ProtectedRoute>
       }/>
+
+      <Route path="/trips/:id" element={
+        <ProtectedRoute>
+          <TripDetail />
+        </ProtectedRoute>
+      }/>
+
     </Routes>
   )
 }

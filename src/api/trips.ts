@@ -4,6 +4,10 @@ export const getTrips = () => {
     return client.get('/trips')
 }
 
+export const getTrip = (id: number) => {
+    return client.get(`/trips/${id}`)
+}
+
 export const createTrips = (
     title: string, 
     destination: string,
