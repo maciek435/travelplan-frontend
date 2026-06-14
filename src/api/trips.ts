@@ -19,3 +19,12 @@ export const createTrips = (
 export const deleteTrips = (id: number) => {
     return client.delete(`/trips/${id}`)
 }
+
+export const updateTrip = (
+    id: number, 
+    title: string, 
+    destination: string, 
+    start_date: string, 
+    end_date: string) => {
+        return client.put(`/trips/${id}`, { title, destination, start_date, end_date })
+}

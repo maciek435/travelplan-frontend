@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { createTrips, deleteTrips, getTrips } from '../api/trips'
+import { createTrips, deleteTrips, getTrips, updateTrip } from '../api/trips'
 import addIcon from '../assets/add.svg'
 import deleteIcon from '../assets/delete.svg'
 import startIcon from '../assets/start.svg'
 import endIcon from '../assets/end.svg'
 import logoutIcon from '../assets/logout.svg'
+import editIcon from '../assets/edit.svg'
 import { formatDate } from '../utils/date'
+
 
 function Trips() {
     const [trips, setTrips] = useState([])
@@ -17,6 +19,14 @@ function Trips() {
     const [endDate, setEndDate] = useState('')
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
     const [tripToDelete, setTripToDelete] = useState<number | null>(null)
+    const [showEditForm, setShowEditForm] = useState(false)
+    const [tripToEdit, setTripToEdit] = useState<any>(null)
+
+    const handleEditClick = (e: any, trip: any) => {
+          e.stopPropagation()
+        setTripToEdit(trip)
+        setShowEditForm(true)
+    }
 
     const navigate = useNavigate()
 
@@ -43,6 +53,13 @@ function Trips() {
         getTrips().then((response) => setTrips(response.data))
         setShowDeleteConfirm(false)
         setTripToDelete(null)
+    }
+
+    const handleEditSave = async (e: any) => {
+        e.preventDefault()
+        await updateTrip(tripToEdit.id, tripToEdit.title, tripToEdit.destination, tripToEdit.start_date, tripToEdit.end_date)
+        getTrips().then((response) => setTrips(response.data))
+        setShowEditForm(false)
     }
 
     useEffect(() => {
@@ -146,6 +163,57 @@ function Trips() {
                                 </div>
                             </div>
                         )}
+                        {showEditForm && tripToEdit && (
+                            <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+                                <div className="bg-white p-8 rounded-lg shadow-md w-96">
+                                <h1 className='text-2xl font-bold mb-6'>Edytuj podróż</h1>
+                                <form onSubmit={handleEditSave} className='w-full max-w-xs'>
+                                    <div className="mb-4">
+                                    <label className="block text-gray-700 text-sm font-bold mb-2">Tytuł</label>
+                                    <input
+                                        value={tripToEdit.title}
+                                        onChange={(e) => setTripToEdit({...tripToEdit, title: e.target.value})}
+                                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" type="text"
+                                    />
+                                    </div>
+                                    <div className="mb-4">
+                                    <label className="block text-gray-700 text-sm font-bold mb-2">Destynacja</label>
+                                    <input
+                                        value={tripToEdit.destination}
+                                        onChange={(e) => setTripToEdit({...tripToEdit, destination: e.target.value})}
+                                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" type="text"
+                                    />
+                                    </div>
+                                    <div className="mb-4">
+                                    <label className="block text-gray-700 text-sm font-bold mb-2">Początek</label>
+                                    <input
+                                        value={tripToEdit.start_date}
+                                        onChange={(e) => setTripToEdit({...tripToEdit, start_date: e.target.value})}
+                                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" type="date"
+                                    />
+                                    </div>
+                                    <div className="mb-4">
+                                    <label className="block text-gray-700 text-sm font-bold mb-2">Koniec</label>
+                                    <input
+                                        value={tripToEdit.end_date}
+                                        onChange={(e) => setTripToEdit({...tripToEdit, end_date: e.target.value})}
+                                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700" type="date"
+                                    />
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                    <button onClick={() => setShowEditForm(false)} type="button"
+                                        className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                                        Anuluj
+                                    </button>
+                                    <button type="submit"
+                                        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                                        Zapisz
+                                    </button>
+                                    </div>
+                                </form>
+                                </div>
+                            </div>
+                            )}
             </nav>
             <div className="p-8 pt-0">
                 {trips.map((trip: any) => (
@@ -166,6 +234,15 @@ function Trips() {
                                 <p className="text-gray-600">{formatDate(trip.end_date)}</p>
                             </div>
                             <div className='flex justify-end'>
+                                <button 
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleEditClick(e, trip)
+                                }}
+                                className="p-2 hover:bg-red-100 rounded-lg transition-colors"
+                                >
+                                <img src={editIcon} className="w-5 h-5" />
+                                </button>
                                 <button 
                                 onClick={(e) => {
                                     e.stopPropagation()
