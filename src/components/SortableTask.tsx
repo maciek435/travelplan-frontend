@@ -8,9 +8,10 @@ import { formatTime } from '../utils/date'
 interface Props {
   task: any
   onDelete: (id: number) => void
+  onEdit: (task: any) => void
 }
 
-function SortableTask({ task, onDelete }: Props) {
+function SortableTask({ task, onDelete, onEdit }: Props) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: task.id })
 
   const style = {
@@ -33,6 +34,7 @@ function SortableTask({ task, onDelete }: Props) {
         <div className='flex justify-end'>
           <button
             onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => onEdit(task)}
             className="p-2 hover:bg-gray-200 rounded-lg transition-colors">
             <img src={editIcon} className="w-5 h-5" />
           </button>

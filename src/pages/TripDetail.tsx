@@ -5,15 +5,13 @@ import { getTrip } from '../api/trips'
 import backIcon from '../assets/back.svg'
 import logoutIcon from '../assets/logout.svg'
 import { formatDate, formatTime } from '../utils/date'
-import { getTasks, createTask, deleteTask, reorderTasks } from '../api/day_tasks'
+import { getTasks, createTask, deleteTask, reorderTasks, updateTask } from '../api/day_tasks'
 import addIcon from '../assets/add.svg'
-import deleteIcon from '../assets/delete.svg'
-import clockIcon from '../assets/clock.svg'
-import editIcon from '../assets/edit.svg'
 import { DndContext, closestCenter } from '@dnd-kit/core'
 import type { DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
 import SortableTask from '../components/SortableTask'
+
 
 
 function TripDetail() {
@@ -27,6 +25,8 @@ function TripDetail() {
     const [taskDate, setTaskDate] = useState('')
     const [taskTime, setTaskTime] = useState('')
     const [taskDescription, setTaskDescription] = useState('')
+    const [showEditTaskForm, setShowEditTaskForm] = useState(false)
+    const [taskToEdit, setTaskToEdit] = useState<any>(null)
 
     const handleLogout = () => {
         localStorage.removeItem('token')
@@ -40,6 +40,18 @@ function TripDetail() {
         setShowTaskForm(false)
         setTaskTitle('')
         setTaskDescription('')
+    }
+
+    const handleEditTaskClick = (task: any) => {
+        setTaskToEdit(task)
+        setShowEditTaskForm(true)
+    }
+
+    const handleEditTaskSave = async (e: any) => {
+        e.preventDefault()
+        await updateTask(taskToEdit.id, taskToEdit.title, taskToEdit.description, taskToEdit.date, Number(id), taskToEdit.start_time)
+        getTasks(Number(id)).then((res) => setTasks(res.data))
+        setShowEditTaskForm(false)
     }
 
     const handleDeleteTask = async (taskId: number) => {
@@ -176,39 +188,39 @@ function TripDetail() {
                     <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                         <SortableContext items={filteredTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
                             {filteredTasks.map((task: any) => (
-                                <SortableTask key={task.id} task={task} onDelete={handleDeleteTask} />
+                                <SortableTask key={task.id} task={task} onDelete={handleDeleteTask} onEdit={handleEditTaskClick}/>
                             ))}
                         </SortableContext>
                     </DndContext>
-                    {showTaskForm && (
-                        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-                            <div className="bg-white p-8 rounded-lg shadow-md w-96">
-                            <h1 className='text-2xl font-bold mb-6'>Nowy task</h1>
-                            <form onSubmit={handleCreateTask} className='w-full max-w-xs'>
-                                <div className="mb-4">
-                                <label className="block text-gray-700 text-sm font-bold mb-2">Tytuł</label>
-                                <input value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)}
-                                    className="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" placeholder="Tytuł"/>
-                                </div>
-                                <div className="mb-4">
-                                <label className="block text-gray-700 text-sm font-bold mb-2">Opis</label>
-                                <input value={taskDescription} onChange={(e) => setTaskDescription(e.target.value)}
-                                    className="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" placeholder="Opis"/>
-                                </div>
-                                <div className="mb-4">
-                                <label className="block text-gray-700 text-sm font-bold mb-2">Czas</label>
-                                <input value={taskTime} onChange={(e) => setTaskTime(e.target.value)}
-                                    className="shadow border rounded w-full py-2 px-3 text-gray-700" type="time"/>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                <button onClick={() => setShowTaskForm(false)} type="button"
-                                    className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Anuluj</button>
-                                <button type="submit"
-                                    className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Zapisz</button>
-                                </div>
-                            </form>
+                    {showEditTaskForm && taskToEdit && (
+                    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+                        <div className="bg-white p-8 rounded-lg shadow-md w-96">
+                        <h1 className='text-2xl font-bold mb-6'>Edytuj task</h1>
+                        <form onSubmit={handleEditTaskSave} className='w-full max-w-xs'>
+                            <div className="mb-4">
+                            <label className="block text-gray-700 text-sm font-bold mb-2">Tytuł</label>
+                            <input value={taskToEdit.title} onChange={(e) => setTaskToEdit({...taskToEdit, title: e.target.value})}
+                                className="shadow border rounded w-full py-2 px-3 text-gray-700" type="text"/>
                             </div>
+                            <div className="mb-4">
+                            <label className="block text-gray-700 text-sm font-bold mb-2">Opis</label>
+                            <input value={taskToEdit.description || ''} onChange={(e) => setTaskToEdit({...taskToEdit, description: e.target.value})}
+                                className="shadow border rounded w-full py-2 px-3 text-gray-700" type="text"/>
+                            </div>
+                            <div className="mb-4">
+                            <label className="block text-gray-700 text-sm font-bold mb-2">Czas</label>
+                            <input value={taskToEdit.start_time || ''} onChange={(e) => setTaskToEdit({...taskToEdit, start_time: e.target.value})}
+                                className="shadow border rounded w-full py-2 px-3 text-gray-700" type="time"/>
+                            </div>
+                            <div className="flex items-center justify-between">
+                            <button onClick={() => setShowEditTaskForm(false)} type="button"
+                                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Anuluj</button>
+                            <button type="submit"
+                                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Zapisz</button>
+                            </div>
+                        </form>
                         </div>
+                    </div>
                     )}
                 </div>
                 <div className="flex-1 bg-white rounded shadow p-4">

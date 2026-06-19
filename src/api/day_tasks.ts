@@ -20,3 +20,7 @@ export const deleteTask = (id: number) => {
 export const reorderTasks = (tripId: number, taskIds: number[]) => {
     return client.put(`/day-tasks/reorder/${tripId}`, { task_ids: taskIds })
 }
+
+export const updateTask = (id: number, title: string, description: string, date: string, trip_id: number, start_time: string) => {
+    return client.put(`/day-tasks/${id}`, { title, description, date, trip_id, start_time })
+}
