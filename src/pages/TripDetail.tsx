@@ -105,6 +105,7 @@ function TripDetail() {
         ? tasks.filter(task => task.date === selectedDay)
         : tasks
 
+
     return (
         <div className="h-screen flex flex-col bg-gray-100 overflow-hidden">
             {/* Nagłówek */}
@@ -192,35 +193,65 @@ function TripDetail() {
                             ))}
                         </SortableContext>
                     </DndContext>
-                    {showEditTaskForm && taskToEdit && (
-                    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-                        <div className="bg-white p-8 rounded-lg shadow-md w-96">
-                        <h1 className='text-2xl font-bold mb-6'>Edytuj task</h1>
-                        <form onSubmit={handleEditTaskSave} className='w-full max-w-xs'>
-                            <div className="mb-4">
-                            <label className="block text-gray-700 text-sm font-bold mb-2">Tytuł</label>
-                            <input value={taskToEdit.title} onChange={(e) => setTaskToEdit({...taskToEdit, title: e.target.value})}
-                                className="shadow border rounded w-full py-2 px-3 text-gray-700" type="text"/>
+                    {showTaskForm && (
+                        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+                            <div className="bg-white p-8 rounded-lg shadow-md w-96">
+                            <h1 className='text-2xl font-bold mb-6'>Nowy task</h1>
+                            <form onSubmit={handleCreateTask} className='w-full max-w-xs'>
+                                <div className="mb-4">
+                                <label className="block text-gray-700 text-sm font-bold mb-2">Tytuł</label>
+                                <input value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)}
+                                    className="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" placeholder="Tytuł"/>
+                                </div>
+                                <div className="mb-4">
+                                <label className="block text-gray-700 text-sm font-bold mb-2">Opis</label>
+                                <input value={taskDescription} onChange={(e) => setTaskDescription(e.target.value)}
+                                    className="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" placeholder="Opis"/>
+                                </div>
+                                <div className="mb-4">
+                                <label className="block text-gray-700 text-sm font-bold mb-2">Czas</label>
+                                <input value={taskTime} onChange={(e) => setTaskTime(e.target.value)}
+                                    className="shadow border rounded w-full py-2 px-3 text-gray-700" type="time"/>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                <button onClick={() => setShowTaskForm(false)} type="button"
+                                    className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Anuluj</button>
+                                <button type="submit"
+                                    className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Zapisz</button>
+                                </div>
+                            </form>
                             </div>
-                            <div className="mb-4">
-                            <label className="block text-gray-700 text-sm font-bold mb-2">Opis</label>
-                            <input value={taskToEdit.description || ''} onChange={(e) => setTaskToEdit({...taskToEdit, description: e.target.value})}
-                                className="shadow border rounded w-full py-2 px-3 text-gray-700" type="text"/>
-                            </div>
-                            <div className="mb-4">
-                            <label className="block text-gray-700 text-sm font-bold mb-2">Czas</label>
-                            <input value={taskToEdit.start_time || ''} onChange={(e) => setTaskToEdit({...taskToEdit, start_time: e.target.value})}
-                                className="shadow border rounded w-full py-2 px-3 text-gray-700" type="time"/>
-                            </div>
-                            <div className="flex items-center justify-between">
-                            <button onClick={() => setShowEditTaskForm(false)} type="button"
-                                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Anuluj</button>
-                            <button type="submit"
-                                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Zapisz</button>
-                            </div>
-                        </form>
                         </div>
-                    </div>
+                    )}
+                    {showEditTaskForm && taskToEdit && (
+                        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+                            <div className="bg-white p-8 rounded-lg shadow-md w-96">
+                            <h1 className='text-2xl font-bold mb-6'>Edytuj task</h1>
+                            <form onSubmit={handleEditTaskSave} className='w-full max-w-xs'>
+                                <div className="mb-4">
+                                <label className="block text-gray-700 text-sm font-bold mb-2">Tytuł</label>
+                                <input value={taskToEdit.title} onChange={(e) => setTaskToEdit({...taskToEdit, title: e.target.value})}
+                                    className="shadow border rounded w-full py-2 px-3 text-gray-700" type="text"/>
+                                </div>
+                                <div className="mb-4">
+                                <label className="block text-gray-700 text-sm font-bold mb-2">Opis</label>
+                                <input value={taskToEdit.description || ''} onChange={(e) => setTaskToEdit({...taskToEdit, description: e.target.value})}
+                                    className="shadow border rounded w-full py-2 px-3 text-gray-700" type="text"/>
+                                </div>
+                                <div className="mb-4">
+                                <label className="block text-gray-700 text-sm font-bold mb-2">Czas</label>
+                                <input value={taskToEdit.start_time || ''} onChange={(e) => setTaskToEdit({...taskToEdit, start_time: e.target.value})}
+                                    className="shadow border rounded w-full py-2 px-3 text-gray-700" type="time"/>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                <button onClick={() => setShowEditTaskForm(false)} type="button"
+                                    className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Anuluj</button>
+                                <button type="submit"
+                                    className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Zapisz</button>
+                                </div>
+                            </form>
+                            </div>
+                        </div>
                     )}
                 </div>
                 <div className="flex-1 bg-white rounded shadow p-4">
