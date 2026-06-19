@@ -5,11 +5,15 @@ import { getTrip } from '../api/trips'
 import backIcon from '../assets/back.svg'
 import logoutIcon from '../assets/logout.svg'
 import { formatDate, formatTime } from '../utils/date'
-import { getTasks, createTask, deleteTask } from '../api/day_tasks'
+import { getTasks, createTask, deleteTask, reorderTasks } from '../api/day_tasks'
 import addIcon from '../assets/add.svg'
 import deleteIcon from '../assets/delete.svg'
 import clockIcon from '../assets/clock.svg'
 import editIcon from '../assets/edit.svg'
+import { DndContext, closestCenter } from '@dnd-kit/core'
+import type { DragEndEvent } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
+import SortableTask from '../components/SortableTask'
 
 
 function TripDetail() {
@@ -43,6 +47,22 @@ function TripDetail() {
         getTasks(Number(id)).then((res) => setTasks(res.data))
     }
 
+    const handleDragEnd = async (event: DragEndEvent) => {
+        const { active, over } = event
+        if (!over || active.id === over.id) return
+
+        const oldIndex = filteredTasks.findIndex(t => t.id === active.id)
+        const newIndex = filteredTasks.findIndex(t => t.id === over.id)
+        const newOrder = arrayMove(filteredTasks, oldIndex, newIndex)
+        
+        setTasks(prev => {
+            const otherTasks = prev.filter(t => t.date !== selectedDay)
+            return [...otherTasks, ...newOrder]
+        })
+
+        await reorderTasks(Number(id), newOrder.map(t => t.id))
+    }
+
     const getDays = (startDate: string, endDate: string) => {
         const days =[]
         const current = new Date(startDate)
@@ -57,7 +77,10 @@ function TripDetail() {
     }
 
     useEffect(() => {
-        getTrip(Number(id)).then((res) => setTrip(res.data)),
+        getTrip(Number(id)).then((res) => {
+            setTrip(res.data)
+            setSelectedDay(res.data.start_date)
+        })
         getTasks(Number(id)).then((res) => setTasks(res.data))
     }, [id])
 
@@ -150,40 +173,13 @@ function TripDetail() {
                         <img src={addIcon} className="w-5 h-5" />
                         </button>
                     </div>
-                    {filteredTasks.map((task: any) => (
-                        <div key={task.id} className="bg-gray-100 rounded p-3 mb-2">
-                            <div className='grid grid-cols-3 items-center'>
-                                <div className='flex gap-2 items-center'>
-                                    <img src={clockIcon} className="w-4 h-4" />
-                                    <p className="text-gray-600">{formatTime(task.start_time)}</p>
-                                </div>
-                                <div>
-                                    <p className="font-bold">{task.title}</p>
-                                    <p className="text-gray-500 text-sm">{task.description}</p>
-                                </div>
-                                <div className='flex justify-end'>
-                                    <button 
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            // handleEditClick(e, trip)
-                                        }}
-                                        className="p-2 hover:bg-red-100 rounded-lg transition-colors"
-                                        >
-                                        <img src={editIcon} className="w-5 h-5" />
-                                        </button>
-                                        <button 
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            handleDeleteTask(task.id)
-                                        }}
-                                        className="p-2 hover:bg-red-100 rounded-lg transition-colors"
-                                        >
-                                        <img src={deleteIcon} className="w-5 h-5" />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>                        
-                    ))}
+                    <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                        <SortableContext items={filteredTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+                            {filteredTasks.map((task: any) => (
+                                <SortableTask key={task.id} task={task} onDelete={handleDeleteTask} />
+                            ))}
+                        </SortableContext>
+                    </DndContext>
                     {showTaskForm && (
                         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
                             <div className="bg-white p-8 rounded-lg shadow-md w-96">
