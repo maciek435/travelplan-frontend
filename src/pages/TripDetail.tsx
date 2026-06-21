@@ -11,6 +11,9 @@ import { DndContext, closestCenter } from '@dnd-kit/core'
 import type { DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
 import SortableTask from '../components/SortableTask'
+import Map from '../components/Map'
+import { searchLocation } from '../utils/geocoding'
+import TaskForm from '../components/TaskForm'
 
 
 
@@ -27,6 +30,11 @@ function TripDetail() {
     const [taskDescription, setTaskDescription] = useState('')
     const [showEditTaskForm, setShowEditTaskForm] = useState(false)
     const [taskToEdit, setTaskToEdit] = useState<any>(null)
+    const [locationQuery, setLocationQuery] = useState('')
+    const [locationResults, setLocationResults] = useState<any[]>([])
+    const [taskLat, setTaskLat] = useState<number | null>(null)
+    const [taskLng, setTaskLng] = useState<number | null>(null)
+    const [taskLocationName, setTaskLocationName] = useState('')
 
     const handleLogout = () => {
         localStorage.removeItem('token')
@@ -35,7 +43,7 @@ function TripDetail() {
 
     const handleCreateTask = async (e: any) => {
         e.preventDefault()
-        await createTask(taskTitle, taskDescription, taskDate || selectedDay || '', Number(id), taskTime)
+        await createTask(taskTitle, taskDescription, taskDate || selectedDay || '', Number(id), taskTime, taskLat, taskLng, taskLocationName)
         getTasks(Number(id)).then((res) => setTasks(res.data))
         setShowTaskForm(false)
         setTaskTitle('')
@@ -44,12 +52,18 @@ function TripDetail() {
 
     const handleEditTaskClick = (task: any) => {
         setTaskToEdit(task)
+        setTaskTitle(task.title)
+        setTaskDescription(task.description || '')
+        setTaskTime(task.start_time || '')
+        setTaskLat(task.lat)
+        setTaskLng(task.lng)
+        setLocationQuery(task.location_name || '')
         setShowEditTaskForm(true)
     }
 
     const handleEditTaskSave = async (e: any) => {
         e.preventDefault()
-        await updateTask(taskToEdit.id, taskToEdit.title, taskToEdit.description, taskToEdit.date, Number(id), taskToEdit.start_time)
+        await updateTask(taskToEdit.id, taskTitle, taskDescription, taskToEdit.date, Number(id), taskTime, taskLat, taskLng, taskLocationName)
         getTasks(Number(id)).then((res) => setTasks(res.data))
         setShowEditTaskForm(false)
     }
@@ -86,6 +100,11 @@ function TripDetail() {
         }
 
         return days
+    }
+
+    const handleLocationSearch = async () => {
+        const results = await searchLocation(locationQuery)
+        setLocationResults(results)
     }
 
     useEffect(() => {
@@ -194,68 +213,60 @@ function TripDetail() {
                         </SortableContext>
                     </DndContext>
                     {showTaskForm && (
-                        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-                            <div className="bg-white p-8 rounded-lg shadow-md w-96">
-                            <h1 className='text-2xl font-bold mb-6'>Nowy task</h1>
-                            <form onSubmit={handleCreateTask} className='w-full max-w-xs'>
-                                <div className="mb-4">
-                                <label className="block text-gray-700 text-sm font-bold mb-2">Tytuł</label>
-                                <input value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)}
-                                    className="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" placeholder="Tytuł"/>
-                                </div>
-                                <div className="mb-4">
-                                <label className="block text-gray-700 text-sm font-bold mb-2">Opis</label>
-                                <input value={taskDescription} onChange={(e) => setTaskDescription(e.target.value)}
-                                    className="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" placeholder="Opis"/>
-                                </div>
-                                <div className="mb-4">
-                                <label className="block text-gray-700 text-sm font-bold mb-2">Czas</label>
-                                <input value={taskTime} onChange={(e) => setTaskTime(e.target.value)}
-                                    className="shadow border rounded w-full py-2 px-3 text-gray-700" type="time"/>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                <button onClick={() => setShowTaskForm(false)} type="button"
-                                    className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Anuluj</button>
-                                <button type="submit"
-                                    className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Zapisz</button>
-                                </div>
-                            </form>
-                            </div>
-                        </div>
+                        <TaskForm
+                            title="Nowy task"
+                            taskTitle={taskTitle}
+                            taskDescription={taskDescription}
+                            taskTime={taskTime}
+                            taskLat={taskLat || null}
+                            taskLng={taskLng || null}
+                            locationQuery={locationQuery}
+                            locationResults={locationResults}
+                            onTitleChange={setTaskTitle}
+                            onDescriptionChange={setTaskDescription}
+                            onTimeChange={setTaskTime}
+                            onLocationQueryChange={setLocationQuery}
+                            onLocationSearch={handleLocationSearch}
+                            onLocationSelect={(result) => {
+                            setTaskLat(result.lat)
+                            setTaskLng(result.lng)
+                            setTaskLocationName(result.name)
+                            setLocationResults([])
+                            setLocationQuery(result.name)
+                            }}
+                            onSubmit={handleCreateTask}
+                            onCancel={() => setShowTaskForm(false)}
+                        />
                     )}
                     {showEditTaskForm && taskToEdit && (
-                        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-                            <div className="bg-white p-8 rounded-lg shadow-md w-96">
-                            <h1 className='text-2xl font-bold mb-6'>Edytuj task</h1>
-                            <form onSubmit={handleEditTaskSave} className='w-full max-w-xs'>
-                                <div className="mb-4">
-                                <label className="block text-gray-700 text-sm font-bold mb-2">Tytuł</label>
-                                <input value={taskToEdit.title} onChange={(e) => setTaskToEdit({...taskToEdit, title: e.target.value})}
-                                    className="shadow border rounded w-full py-2 px-3 text-gray-700" type="text"/>
-                                </div>
-                                <div className="mb-4">
-                                <label className="block text-gray-700 text-sm font-bold mb-2">Opis</label>
-                                <input value={taskToEdit.description || ''} onChange={(e) => setTaskToEdit({...taskToEdit, description: e.target.value})}
-                                    className="shadow border rounded w-full py-2 px-3 text-gray-700" type="text"/>
-                                </div>
-                                <div className="mb-4">
-                                <label className="block text-gray-700 text-sm font-bold mb-2">Czas</label>
-                                <input value={taskToEdit.start_time || ''} onChange={(e) => setTaskToEdit({...taskToEdit, start_time: e.target.value})}
-                                    className="shadow border rounded w-full py-2 px-3 text-gray-700" type="time"/>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                <button onClick={() => setShowEditTaskForm(false)} type="button"
-                                    className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Anuluj</button>
-                                <button type="submit"
-                                    className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Zapisz</button>
-                                </div>
-                            </form>
-                            </div>
-                        </div>
+                        <TaskForm
+                            title="Edytuj task"
+                            taskTitle={taskTitle}
+                            taskDescription={taskDescription}
+                            taskTime={taskTime}
+                            taskLat={taskLat || null}
+                            taskLng={taskLng || null}
+                            locationQuery={locationQuery}
+                            locationResults={locationResults}
+                            onTitleChange={setTaskTitle}
+                            onDescriptionChange={setTaskDescription}
+                            onTimeChange={setTaskTime}
+                            onLocationQueryChange={setLocationQuery}
+                            onLocationSearch={handleLocationSearch}
+                            onLocationSelect={(result) => {
+                            setTaskLat(result.lat)
+                            setTaskLng(result.lng)
+                            setTaskLocationName(result.name)
+                            setLocationResults([])
+                            setLocationQuery(result.name)
+                            }}
+                            onSubmit={handleEditTaskSave}
+                            onCancel={() => setShowEditTaskForm(false)}
+                        />
                     )}
                 </div>
-                <div className="flex-1 bg-white rounded shadow p-4">
-                    mapa (soon)
+                <div className="flex-1 rounded shadow overflow-hidden">
+                    <Map tasks={filteredTasks} />
                 </div>
             </div>
         </div>
