@@ -35,6 +35,7 @@ function TripDetail() {
     const [taskLat, setTaskLat] = useState<number | null>(null)
     const [taskLng, setTaskLng] = useState<number | null>(null)
     const [taskLocationName, setTaskLocationName] = useState('')
+    const [focusedLocation, setFocusedLocation] = useState<[number, number] | null>(null)
 
     const handleLogout = () => {
         localStorage.removeItem('token')
@@ -58,6 +59,7 @@ function TripDetail() {
         setTaskLat(task.lat)
         setTaskLng(task.lng)
         setLocationQuery(task.location_name || '')
+        setTaskLocationName(task.location_name || '')
         setShowEditTaskForm(true)
     }
 
@@ -208,7 +210,7 @@ function TripDetail() {
                     <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                         <SortableContext items={filteredTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
                             {filteredTasks.map((task: any) => (
-                                <SortableTask key={task.id} task={task} onDelete={handleDeleteTask} onEdit={handleEditTaskClick}/>
+                                <SortableTask key={task.id} task={task} onDelete={handleDeleteTask} onEdit={handleEditTaskClick} onShowLocation={(lat, lng) => setFocusedLocation([lat, lng])}/>
                             ))}
                         </SortableContext>
                     </DndContext>
@@ -266,7 +268,7 @@ function TripDetail() {
                     )}
                 </div>
                 <div className="flex-1 rounded shadow overflow-hidden">
-                    <Map tasks={filteredTasks} />
+                    <Map tasks={filteredTasks} centerOn={focusedLocation} />
                 </div>
             </div>
         </div>

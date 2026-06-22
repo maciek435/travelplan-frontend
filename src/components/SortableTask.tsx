@@ -2,6 +2,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import deleteIcon from '../assets/delete.svg'
 import editIcon from '../assets/edit.svg'
+import locationIcon from '../assets/location.svg'
 import clockIcon from '../assets/clock.svg'
 import { formatTime } from '../utils/date'
 
@@ -9,9 +10,10 @@ interface Props {
   task: any
   onDelete: (id: number) => void
   onEdit: (task: any) => void
+  onShowLocation: (loc: number, lng: number) => void
 }
 
-function SortableTask({ task, onDelete, onEdit }: Props) {
+function SortableTask({ task, onDelete, onEdit, onShowLocation }: Props) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: task.id })
 
   const style = {
@@ -32,6 +34,12 @@ function SortableTask({ task, onDelete, onEdit }: Props) {
           <p className="text-gray-500 text-sm">{task.description}</p>
         </div>
         <div className='flex justify-end'>
+          <button
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => onShowLocation(task.lat, task.lng)}
+            className="p-2 hover:bg-gray-200 rounded-lg transition-colors">
+            <img src={locationIcon} className="w-5 h-5" />
+          </button>
           <button
             onPointerDown={(e) => e.stopPropagation()}
             onClick={() => onEdit(task)}
